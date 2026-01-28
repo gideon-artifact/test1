@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Draggable Squares</title>
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --panel: #ffffff;
+      --text: #1f2933;
+      --accent: #2f5cff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    button {
+      border: none;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+
+    button:hover {
+      background: #2447c7;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    #canvas {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 57px);
+    }
+
+    .square {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      cursor: grab;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+      user-select: none;
+    }
+
+    .square.dragging {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button id="addBtn">Add Square</button>
+    <button id="clearBtn">Clear Squares</button>
+  </div>
+
+  <div id="canvas"></div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const addBtn = document.getElementById("addBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    let zCounter = 1;
+    let activeSquare = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function randomColor() {
+      const r = Math.floor(Math.random() * 200 + 30);
+      const g = Math.floor(Math.random() * 200 + 30);
+      const b = Math.floor(Math.random() * 200 + 30);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function createSquare() {
+      const square = document.createElement("div");
+      square.className = "square";
+      square.style.background = randomColor();
+      square.style.left = `${Math.random() * (canvas.clientWidth - 110) + 10}px`;
+      square.style.top = `${Math.random() * (canvas.clientHeight - 110) + 10}px`;
+      square.style.zIndex = zCounter++;
+
+      square.addEventListener("mousedown", (e) => {
+        activeSquare = square;
+        activeSquare.classList.add("dragging");
+        activeSquare.style.zIndex = zCounter++;
+        const rect = square.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+      });
+
+      canvas.appendChild(square);
+    }
+
+    function clearSquares() {
+      canvas.innerHTML = "";
+    }
+
+    addBtn.addEventListener("click", createSquare);
+    clearBtn.addEventListener("click", clearSquares);
+
+    window.addEventListener("mousemove", (e) => {
+      if (!activeSquare) return;
+      const canvasRect = canvas.getBoundingClientRect();
+      let x = e.clientX - canvasRect.left - offsetX;
+      let y = e.clientY - canvasRect.top - offsetY;
+
+      x = Math.max(0, Math.min(x, canvas.clientWidth - 100));
+      y = Math.max(0, Math.min(y, canvas.clientHeight - 100));
+
+      activeSquare.style.left = `${x}px`;
+      activeSquare.style.top = `${y}px`;
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (activeSquare) {
+        activeSquare.classList.remove("dragging");
+        activeSquare = null;
+      }
+    });
+  </script>
+</body>
+</html>
